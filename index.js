@@ -36,8 +36,9 @@ server.get('/opcao/:serieId', async (req, res) => {
     }
 })
 
-server.get('teste', async (req, res) => {
-    res.send('teste')
+server.get('/teste', async (req, res) => {
+
+    return res.send('teste')
 })
 
 // Rota responsável em retornar o parâmetro 

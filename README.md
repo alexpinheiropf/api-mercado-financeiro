@@ -68,7 +68,10 @@ pm2 start index.js name=api-mercado-financeiro
 pm2 stop api-mercado-financeiro
 
 ## Para atualizar a versão da API
-git pull origin-master
+git pull origin main
+
+## Para restartar a aplicação depois do git pull
+pm2 restart api-mercado-financeiro
 
 
 
