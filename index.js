@@ -49,8 +49,8 @@ server.get('/tesouro/:ticker', async (req, res) => {
     const ano = hoje.getFullYear().toString().slice(2)
     const dataAtual = `${dia}/${mes}/${ano}`
 
-    // Seta o preço como 0
-    let price = 0
+    // Seta o preço
+    let price
 
     try {
 
@@ -62,11 +62,16 @@ server.get('/tesouro/:ticker', async (req, res) => {
           if(dataAtual === el.date) {
             // Valida se possui o ultimo preço atual senão pega o ultimo valor guardado
             price = el.buyprice ?? el.sellprice
+
+          } else {
+            price = el.buyprice ?? el.sellprice
           }
         });
 
         // Retorna o ultimo valor cotado no dia
-        return res.send({ price })
+        return res.send({ 
+            "price": price
+         })
 
     } catch (error) {
 
