@@ -9,7 +9,7 @@ exports.getBondByTicker = async (ticker) => {
     const formatBondData = (bond) => {
         const price = bond.untrInvstmtVal === 0 ? bond.untrRedVal : bond.untrInvstmtVal;
         return {
-            nameTreasury: bond.nm,
+            name: bond.nm,
             price,
             investment: 'Renda Fixa',
             group: 'Tesouro',

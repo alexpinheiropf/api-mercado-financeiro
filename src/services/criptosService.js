@@ -12,12 +12,14 @@ exports.getCripto = async (ticker) => {
     // Obtendo o preço da criptomoeda
     const dataPrice = await apiCripto('BRL', process.env.API_COIN_MARKETING_CAP_PRICE, process.env.PARAM_COIN_MARKETING_CAP_CURRENCY, info.id);
     const returnPrice = getCryptoPrice(dataPrice.data);
-    const price = {
+
+    return {
+        name: info.name,
+        symbol: info.symbol,
+        segment: info.category,
+        description: info.description,
         price: returnPrice,
         investment: 'Renda Variável',
         group: 'Cripto'
     };
-
-
-    return { ...info, ...price };
 };
