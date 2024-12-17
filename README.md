@@ -1,80 +1,126 @@
-## Passo a passo para criar uma API no AWS
-## Acesso da API na AWS por exemplo: https://54.94.91.102:3000/opcao/PETRB280 ou https://54.94.91.102:3000//tesouro/tesouro-Selic-2029
 
-## Acesso ao vídeo tutorial para criar a máquina na AWS
-## https://www.youtube.com/watch?v=u-o7cqzK6u8
+# Node.js API - Stock Options and Bonds
 
-## Inicializar package.json
-yarn init -y
+Este projeto é uma API desenvolvida em Node.js que utiliza Express para oferecer informações sobre opções de ações e títulos do Tesouro Direto.
 
-## Inicializar node_modules
-npm add express
+## Estrutura do Projeto
 
-## Executar o node com o nodemon (Sem precisar reinicializar)
-yarn start 
+```
+src
+├── config
+│   ├── api-radar-opcoes.js
+│   ├── api-status-invest.js
+├── controllers
+│   ├── bondsController.js
+│   ├── stockOptionsController.js
+├── services
+│   ├── apiRadarOpcoesService.js
+│   ├── apiStatusInvestService.js
+├── utils
+│   ├── replacetoLowerCase.js
+├── app.js
+├── routes.js
+.env
+```
 
-## Execução unica para teste
-node index.js
+## Pré-requisitos
 
-## ------------------------------------------------------------------------------
-## CONFIGURAÇÃO DO OPENSSH NO POWERSHELL para acesso a máquina da AWS
-## ------------------------------------------------------------------------------
-## Link de acesso aos docs da microsoft
-## https://learn.microsoft.com/pt-br/windows-server/administration/openssh/openssh_install_firstuse
+- [Node.js](https://nodejs.org) (versão 14 ou superior)
+- [NPM](https://www.npmjs.com/) ou [Yarn](https://yarnpkg.com/)
 
-## No terminal do PowerShell do windows digitar o seguinte comando para verificar se existe o open SSH
-Get-WindowsCapability -Online | Where-Object Name -like 'OpenSSH*'
+## Configuração
 
-## Acessar a máquina na AWS
-## EC2/Instances/{{id da máquina}}/Connect to instance
-## Vai aparcer uma tela com as informações de acesso via Open SSH
-## Obs.: Ali vai ter o chmod 440 que deve ser configurado em Linux e Mac, porém em windows é um pouco diferente
-## Windows:
-## Acessar a pasta onde está a chave .pem e ir nas opções segurança em propriedades
-## Desabilitar a Herança e clicar na primeira opção do modal
-## Adiciona a permissão correta como:
-## Inclua o usuário correta da máquina em que está
-## Deixa as duas caixinhas Ler e Executar e pode aplicar e fechar tudo
+1. Clone o repositório:
 
-## Acesse a pasta de acesso onde está a chave .pem
-## E digite o acesso ssh com por exemplo: ssh -i "instance-aws-apsolutions.pem" ubuntu@ec2-54-94-91-102.sa-east-1.compute.amazonaws.com
-## Já dentro do servidor realize um git clone para clonar o projeto dentro do servidor --- Caso tenha faça um git pull
-## Para clonar basta executar o comando git clone https://github.com/alexpinheiropf/api-mercado-financeiro.git
+   ```bash
+   git clone https://github.com/alexpinheiropf/api-mercado-financeiro.git
+   cd api-mercado-financeiro
+   ```
 
-## Acessar a pasta do projeto
-## Rodar o npm install para baixar o node modules
+2. Instale as dependências:
 
-## Antes de prosseguir com a execução do projeto deve-se liberar a porta 3333 na AWS caso não esteja liberada
-## Acessar as instancias na AWS
-## Rolar até o final da máquina e clicar no grupo de segurança definido para a máquina
-## Clicar no grupo
-## Ir no botão Edit inbound rules
-## Add rule
-## Custom TCP - Port range(3333) - Source(Anywhere) - Salve Rules
+   ```bash
+   npm install
+   ```
 
-## Para deixar rodando o serviço para sempre deve-se instalar o pm2 para gerenciar os serviços
-sudo npm install pm2 -g
+3. Configure as variáveis de ambiente no arquivo `.env`:
 
-## Para verificar se está instalado o pm2
-pm2 -v
+   ```env
+   PORT=3000
+   API_STATUS_INVEST_URL=https://api.statusinvest.com.br
+   API_RADAR_OPCOES_URL=https://api-radar-opcoes.com.br
+   ```
 
-## Para verificar quais instancias estão rodando agora
-pm2 list
+## Uso
 
-## Acessando a pasta do projeto para rodar a api executar o seguinte comando
-pm2 start index.js name=api-mercado-financeiro
+1. Inicie o servidor em modo de desenvolvimento:
 
-## Para parar a aplicação 
-pm2 stop api-mercado-financeiro
+   ```bash
+   npm run dev
+   ```
 
-## Para atualizar a versão da API
-git pull origin main
+2. Acesse a API em `http://localhost:3000`.
 
-## Para restartar a aplicação depois do git pull
-pm2 restart api-mercado-financeiro
+## Endpoints
 
+### 1. **Obter Preço de Opções de Ações**
 
+   - **URL:** `/stockoptions/:serieId`
+   - **Método:** `GET`
+   - **Parâmetros:** `serieId` - ID da série da opção de ação
+   - **Exemplo de resposta:**
+     ```json
+     {
+       "price": 12.34
+     }
+     ```
 
+### 2. **Obter Dados de Títulos do Tesouro Direto**
 
+   - **URL:** `/bonds/:ticker`
+   - **Método:** `GET`
+   - **Parâmetros:** `ticker` - Nome do título no formato lowercase e sem espaços
+   - **Exemplo de resposta:**
+     ```json
+     {
+       "nameTreasury": "Tesouro Prefixado 2026",
+       "price": 1023.45
+     }
+     ```
 
+## Estrutura de Código
 
+- **Config:** Contém a configuração de URLs das APIs externas.
+- **Controllers:** Gerenciam a lógica das rotas, processando requisições e enviando respostas.
+- **Services:** Fazem a comunicação com APIs externas e encapsulam a lógica de negócios.
+- **Utils:** Inclui funções auxiliares, como a conversão para lowercase.
+
+## Scripts Disponíveis
+
+- `npm run dev`: Inicia o servidor em modo de desenvolvimento.
+- `npm start`: Inicia o servidor em modo de produção.
+
+## Contribuição
+
+1. Faça um fork do repositório.
+2. Crie uma branch para sua feature:
+   ```bash
+   git checkout -b feature/nova-feature
+   ```
+3. Commit suas alterações:
+   ```bash
+   git commit -m 'Adiciona nova feature'
+   ```
+4. Faça um push para sua branch:
+   ```bash
+   git push origin feature/nova-feature
+   ```
+5. Abra um Pull Request.
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT. Consulte o arquivo `LICENSE` para obter mais detalhes.
+
+---
+
+**Desenvolvido com 💻 por [Seu Nome](https://github.com/seu-usuario).**
