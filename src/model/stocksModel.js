@@ -4,7 +4,7 @@ const apiMaisRetorno = require('../config/api-mais-retorno');
 
 require('dotenv').config();
 
-exports.getStocksModel = async (ticker, param) => {
+exports.getStocksModel = async (ticker, param, type) => {
     let responseData;
 
     switch (param) {
@@ -29,7 +29,7 @@ exports.getStocksModel = async (ticker, param) => {
         case 'analiseAcoes':
             responseData = await apiAnaliseAcoes(
                 ticker,
-                process.env.API_ANALISE_DE_ACOES_STOCKS
+                type
             );
             break;
 

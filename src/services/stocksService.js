@@ -1,6 +1,6 @@
 const { getStocksModel } = require('../model/stocksModel');
 const translateText = require('../utils/globalUtils').translateText;
-const { getType } = require('../utils/stocksUtils');
+const formattedCNPJ = require('../utils/stocksUtils').formattedCNPJ;
 
 /**
  * Serviço para obter informações sobre ações com base no ticker fornecido.
@@ -8,11 +8,13 @@ const { getType } = require('../utils/stocksUtils');
  * @returns {Promise<object>} Informações detalhadas sobre o ativo.
  */
 exports.getStocksService = async (ticker) => {
-    let cnpj = '', segment = '', description = '', dataInfo;
+    let cnpj = '', segment = '', description = '', dataInfo, jsonInfo;
 
     // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
-    const dataType = await getStocksModel(ticker, 'braipSearch');
-    const group = getType(dataType, ticker);
+    const dataType = await getStocksModel(ticker, 'maisRetorno');
+    const group = dataType.data.pageProps.headers.type === 'AÇÕES'
+        ? 'Ação'
+        : dataType.data.pageProps.headers.type;
 
     // Busca informações principais sobre o ativo.
     const dataStock = await getStocksModel(ticker, 'braipModules');
@@ -34,12 +36,24 @@ exports.getStocksService = async (ticker) => {
     // Obtém informações adicionais com base no grupo identificado.
     if (group === 'Ação') {
         // Se for uma ação, busca informações detalhadas específicas.
-        const jsonInfo = await getStocksModel(ticker, 'analiseAcoes');
+        jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'acoes');
         dataInfo = JSON.parse(jsonInfo);
 
         cnpj = dataInfo.document;
         segment = dataInfo.sectorName;
         description = dataInfo.about || dataInfo.aboutHistory;
+    } else if (group === 'FII') {
+        jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'fiis');
+        dataInfo = JSON.parse(jsonInfo);
+
+        cnpj = dataInfo.document;
+        segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`
+        description = dataInfo.aboutHistory;
+
+    } else if (group === 'ETF') {
+        cnpj = formattedCNPJ(dataType.data.pageProps.headers.cnpj)
+        segment = name
+
     } else {
         // Para outros grupos, traduz e ajusta informações do perfil resumido.
         segment = stock.summaryProfile?.industry
@@ -59,6 +73,6 @@ exports.getStocksService = async (ticker) => {
         description,
         investment: 'Renda Variável',
         group,
-        cnpj,
+        cnpj
     };
 };

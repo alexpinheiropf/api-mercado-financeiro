@@ -1,7 +1,17 @@
 const apiStatusInvest = require('../config/api-status-invest');
+const { getLastPrice } = require('../utils/stocksOptionsUtils');
 
-exports.getStockOptionPrice = async (serieId) => {
-    const { data } = await apiStatusInvest.get(`opcao/seriepremio?serieId=${serieId}`);
-    const arrayValoresOpcao = data.prices;
-    return arrayValoresOpcao.at(-1).price; // Retorna o último preço cotado
+exports.getStockOptionService = async (ticker) => {
+    const data = await apiStatusInvest(ticker);
+    price = getLastPrice(data)
+
+    return {
+        name: '',
+        ticker,
+        price,
+        segment: 'Derivativos',
+        description: '',
+        'investment': "Renda Variável",
+        'group': "Opção de Ação",
+    };
 };
