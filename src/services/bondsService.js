@@ -1,9 +1,8 @@
-const apiTesouroDireto = require('../config/api-radar-opcoes').apiTesouroDireto;
-const replacetoLowerCase = require('../utils/replacetoLowerCase');
+const replacetoLowerCase = require('../utils/globalUtils').replacetoLowerCase;
+const getBondsModel = require('../model/bondsModel');
 
-exports.getBondByTicker = async (ticker) => {
-    const { response } = await apiTesouroDireto();
-    const dataApiTreasury = response.TrsrBdTradgList;
+exports.getBondsService = async (ticker) => {
+    const dataApiTreasury = await getBondsModel();
 
     // Função para formatar os dados do bond
     const formatBondData = (bond) => {
@@ -11,9 +10,10 @@ exports.getBondByTicker = async (ticker) => {
         return {
             name: bond.nm,
             price,
+            segment: 'Tesouro Direto',
+            description: bond.featrs,
             investment: 'Renda Fixa',
             group: 'Tesouro',
-            segment: 'Tesouro Direto',
         };
     };
 

@@ -1,12 +1,12 @@
-const criptoService = require('../services/criptosService');
+const criptosService = require('../services/criptosService');
 
 exports.getCriptos = async (req, res) => {
     const { ticker } = req.params;
 
     try {
-        const criptoData = await criptoService.getCripto(ticker);
+        const criptoData = await criptosService.getCriptosService(ticker);
         if (!criptoData) {
-            return res.status(404).send({ error: 'Cripto not found' });
+            return res.status(404).send({ error: 'Cripto não encontrada' });
         }
         return res.send(criptoData);
     } catch (error) {

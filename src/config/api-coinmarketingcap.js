@@ -1,7 +1,7 @@
 require('dotenv').config();
 const axios = require("axios");
 
-const apiCripto = async (ticker, api, param, id) => {
+const apiCoinMarketingCap = async (ticker, api, param, id) => {
     try {
         const params = {
             [param]: ticker,
@@ -18,12 +18,12 @@ const apiCripto = async (ticker, api, param, id) => {
             },
             params: params,
         });
-        return response;
+        return response.data;
     } catch (error) {
         console.error('Erro ao buscar categorias de cripto:', error.message);
         throw error;
     }
 };
 
-module.exports = apiCripto; // Exporta diretamente a função
+module.exports = apiCoinMarketingCap; // Exporta diretamente a função
 

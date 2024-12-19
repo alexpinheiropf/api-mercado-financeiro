@@ -1,25 +1,47 @@
-const apiCripto = require('../config/api-coinmarketingcap');
-const getCriptoInfo = require('../utils/getCriptoInfo');
-const getCryptoPrice = require('../utils/getCryptoPrice');
-
+const getCriptoModel = require('../model/criptoModel');
+const { translateText } = require('../utils/globalUtils');
+const { getCryptoPrice, getDataCripto, getSegmentCripto } = require('../utils/criptoUtils');
 require('dotenv').config();
 
-exports.getCripto = async (ticker) => {
-    // Obtendo informações sobre a criptomoeda
-    const dataInfo = await apiCripto(ticker, process.env.API_COIN_MARKETING_CAP_INFO, process.env.PARAM_COIN_MARKETING_CAP_CRIPTO);
-    const info = await getCriptoInfo(dataInfo.data);
+/**
+ * Serviço para obter informações sobre criptomoedas com base no ticker fornecido.
+ * @param {string} ticker - Código da criptomoeda.
+ * @returns {Promise<object|null>} Informações detalhadas sobre a criptomoeda ou null se ocorrer um erro.
+ */
+exports.getCriptosService = async (ticker) => {
+    // Obtém informações gerais da criptomoeda pelo modelo.
+    const dataCripto = await getCriptoModel(ticker, 'symbol');
 
-    // Obtendo o preço da criptomoeda
-    const dataPrice = await apiCripto('BRL', process.env.API_COIN_MARKETING_CAP_PRICE, process.env.PARAM_COIN_MARKETING_CAP_CURRENCY, info.id);
-    const returnPrice = getCryptoPrice(dataPrice.data);
+    // Verifica se os dados retornados possuem a estrutura esperada.
+    if (!dataCripto || !dataCripto.data) {
+        console.error("JSON inválido ou estrutura inesperada.");
+        return null;
+    }
 
+    // Extrai dados principais da criptomoeda.
+    const cripto = getDataCripto(dataCripto);
+
+    // Nome da criptomoeda.
+    const name = cripto.name;
+
+    // Segmento da criptomoeda (tradução e categorização).
+    const segment = await getSegmentCripto(cripto);
+
+    // Descrição traduzida da criptomoeda.
+    const description = await translateText(cripto.description);
+
+    // Obtém o preço da criptomoeda com base no ID e ticker.
+    const dataPrice = await getCriptoModel(ticker, 'convert', cripto.id);
+    const price = getCryptoPrice(dataPrice.data);
+
+    // Retorna as informações formatadas como objeto.
     return {
-        name: info.name,
-        symbol: info.symbol,
-        segment: info.category,
-        description: info.description,
-        price: returnPrice,
+        name,
+        ticker: ticker.toUpperCase(),
+        price,
+        segment,
+        description,
         investment: 'Renda Variável',
-        group: 'Cripto'
+        group: 'Cripto',
     };
 };

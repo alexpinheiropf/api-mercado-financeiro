@@ -1,9 +1,9 @@
 const express = require('express');
-const { getCriptos } = require('../controllers/criptosController');
+const { getStocksController } = require('../controllers/stocksController');
 
 const router = express.Router();
 
 // Rota para obter dados de títulos públicos
-router.get('/:ticker', getCriptos);
+router.get('/:ticker', getStocksController);
 
 module.exports = router;
