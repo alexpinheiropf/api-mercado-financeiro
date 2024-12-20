@@ -18,7 +18,6 @@ const apiAnaliseAcoes = async (ticker, type) => {
     console.log(response.config.headers);
 
     console.log(`[SUCCESS] Requisição bem-sucedida. Status: ${response.status}`);
-    console.log("[INFO] Dados recebidos da API:", JSON.stringify(response.data, null, 2));
 
     return response.data.result.pageContext.data;
   } catch (error) {
