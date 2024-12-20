@@ -7,7 +7,12 @@ const apiAnaliseAcoes = async (ticker, type) => {
 
   try {
     console.log("[INFO] Iniciando requisição para a API...");
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
+      },
+    });
 
     console.log(`[SUCCESS] Requisição bem-sucedida. Status: ${response.status}`);
     console.log("[INFO] Dados recebidos da API:", JSON.stringify(response.data, null, 2));
