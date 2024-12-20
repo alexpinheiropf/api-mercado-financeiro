@@ -12,12 +12,15 @@ exports.getStocksService = async (ticker) => {
 
     // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
     const dataType = await getStocksModel(ticker, 'maisRetorno');
+    console.log(`Retorna getStocksModel API maisRetorno :: ${dataType.data}`)
+
     const group = dataType.data.pageProps.headers.type === 'AÇÕES'
         ? 'Ação'
         : dataType.data.pageProps.headers.type;
 
     // Busca informações principais sobre o ativo.
     const dataStock = await getStocksModel(ticker, 'braipModules');
+    console.log(`Retorna getStocksModel API braipModules :: ${dataStock.results[0]}`)
 
     // Valida a existência de resultados.
     if (!dataStock.results || !Array.isArray(dataStock.results)) {
@@ -38,6 +41,7 @@ exports.getStocksService = async (ticker) => {
         // Se for uma ação, busca informações detalhadas específicas.
         jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'acoes');
         dataInfo = JSON.parse(jsonInfo);
+        console.log(`Retorna getStocksModel API analiseAcoes/acoes :: ${dataInfo}`)
 
         cnpj = dataInfo.document;
         segment = dataInfo.sectorName;
@@ -45,6 +49,7 @@ exports.getStocksService = async (ticker) => {
     } else if (group === 'FII') {
         jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'fiis');
         dataInfo = JSON.parse(jsonInfo);
+        console.log(`Retorna getStocksModel API analiseAcoes/fiis :: ${dataInfo}`)
 
         cnpj = dataInfo.document;
         segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`

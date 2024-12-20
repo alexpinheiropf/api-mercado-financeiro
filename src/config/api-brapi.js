@@ -1,8 +1,9 @@
 require('dotenv').config();
 const axios = require("axios");
 
-const apiStock = async (ticker, api, module, param) => {
+const apiBrapi = async (ticker, api, module, param) => {
     const url = `${process.env.API_BRAPI_URL}${api}${ticker}`;
+    console.log(`Monta a URL de acesso da apiBrapi ${url}`)
     try {
         const params = {
             [module]: param,
@@ -16,9 +17,9 @@ const apiStock = async (ticker, api, module, param) => {
         });
         return response.data; // Retornando apenas os dados da resposta
     } catch (error) {
-        console.error('Erro ao buscar informação da ação:', error.response?.data || error.message);
+        console.error('Erro ao buscar informação da API Brapi:', error.response?.data || error.message);
         throw error;
     }
 };
 
-module.exports = apiStock;
+module.exports = apiBrapi;

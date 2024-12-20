@@ -5,6 +5,7 @@ const apiMaisRetorno = require('../config/api-mais-retorno');
 require('dotenv').config();
 
 exports.getStocksModel = async (ticker, param, type) => {
+    console.log(`Recupera parâmetros do getStocksModel ${ticker}, ${param}, ${type}`)
     let responseData;
 
     switch (param) {

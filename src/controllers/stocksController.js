@@ -2,6 +2,7 @@ const stocksService = require('../services/stocksService');
 
 exports.getStocksController = async (req, res) => {
     const { ticker } = req.params;
+    console.log(`Recupera parâmetro da requisição ${ticker}`)
 
     try {
         const stockData = await stocksService.getStocksService(ticker);
