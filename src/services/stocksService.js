@@ -39,12 +39,10 @@ exports.getStocksService = async (ticker) => {
     // Obtém informações adicionais com base no grupo identificado.
     if (group === 'Ação') {
         // Se for uma ação, busca informações detalhadas específicas.
-        jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'acoes');
-        dataInfo = JSON.parse(jsonInfo);
+        cnpj = formattedCNPJ(dataType.data.pageProps.headers.cnpj);
+        segment = dataType.data.pageProps.headers.actuation_segment;
+        description = await translateText(stock.summaryProfile.longBusinessSummary);
 
-        cnpj = dataInfo.document;
-        segment = dataInfo.sectorName;
-        description = dataInfo.about || dataInfo.aboutHistory;
     } else if (group === 'FII') {
         jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'fiis');
         dataInfo = JSON.parse(jsonInfo);
