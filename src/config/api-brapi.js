@@ -3,7 +3,7 @@ const axios = require("axios");
 
 const apiBrapi = async (ticker, api, module, param) => {
     const url = `${process.env.API_BRAPI_URL}${api}${ticker}`;
-    console.log(`Monta a URL de acesso da apiBrapi ${url}`)
+    console.log(`[INFO] Monta a URL de acesso da apiBrapi ::: ${url}`)
     try {
         const params = {
             [module]: param,
@@ -17,6 +17,7 @@ const apiBrapi = async (ticker, api, module, param) => {
         });
         return response.data; // Retornando apenas os dados da resposta
     } catch (error) {
+        console.log(`[ERROR] Erro ao buscar informação da API Brapi`)
         console.error('Erro ao buscar informação da API Brapi:', error.response?.data || error.message);
         throw error;
     }

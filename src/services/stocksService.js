@@ -12,7 +12,7 @@ exports.getStocksService = async (ticker) => {
 
     // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
     const dataType = await getStocksModel(ticker, 'maisRetorno');
-    console.log(`Retorna getStocksModel API maisRetorno :: ${dataType.data}`)
+    console.log(`[INFO] Retorna getStocksModel API maisRetorno :: ${dataType.data}`)
 
     const group = dataType.data.pageProps.headers.type === 'AÇÕES'
         ? 'Ação'
@@ -20,17 +20,17 @@ exports.getStocksService = async (ticker) => {
 
     // Busca informações principais sobre o ativo.
     const dataStock = await getStocksModel(ticker, 'braipModules');
-    console.log(`Retorna getStocksModel API braipModules :: ${dataStock.results[0]}`)
+    console.log(`[INFO] Retorna getStocksModel API braipModules :: ${dataStock.results[0]}`)
 
     // Valida a existência de resultados.
     if (!dataStock.results || !Array.isArray(dataStock.results)) {
-        throw new Error("Sem resultados.");
+        throw new Error("[ERROR] Sem resultados.");
     }
 
     // Extrai o primeiro item do array de resultados.
     const stock = dataStock.results[0];
     if (!stock) {
-        throw new Error("Nenhum dado disponível.");
+        throw new Error("[ERROR] Nenhum dado disponível.");
     }
 
     // Desestrutura os campos relevantes do ativo.
@@ -41,7 +41,6 @@ exports.getStocksService = async (ticker) => {
         // Se for uma ação, busca informações detalhadas específicas.
         jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'acoes');
         dataInfo = JSON.parse(jsonInfo);
-        console.log(`Retorna getStocksModel API analiseAcoes/acoes :: ${dataInfo}`)
 
         cnpj = dataInfo.document;
         segment = dataInfo.sectorName;
@@ -49,7 +48,6 @@ exports.getStocksService = async (ticker) => {
     } else if (group === 'FII') {
         jsonInfo = await getStocksModel(ticker, 'analiseAcoes', 'fiis');
         dataInfo = JSON.parse(jsonInfo);
-        console.log(`Retorna getStocksModel API analiseAcoes/fiis :: ${dataInfo}`)
 
         cnpj = dataInfo.document;
         segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`
