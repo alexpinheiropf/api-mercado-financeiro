@@ -1,5 +1,6 @@
 const apiBrapi = require('../config/api-brapi');
 const apiAnaliseAcoes = require('../config/api-analise-de-acoes');
+const apiFelixNaBolsa = require('../config/api-felix-na-bolsa');
 const apiMaisRetorno = require('../config/api-mais-retorno');
 
 require('dotenv').config();
@@ -38,6 +39,12 @@ exports.getStocksModel = async (ticker, param, type) => {
             responseData = await apiMaisRetorno(
                 ticker,
                 process.env.API_MAIS_RETORNO_INFO
+            );
+            break;
+
+        case 'felixNaBolsa':
+            responseData = await apiFelixNaBolsa(
+                ticker
             );
             break;
 

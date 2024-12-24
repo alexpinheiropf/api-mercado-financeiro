@@ -1,6 +1,5 @@
 const { getStocksModel } = require('../model/stocksModel');
 const translateText = require('../utils/globalUtils').translateText;
-const formattedCNPJ = require('../utils/stocksUtils').formattedCNPJ;
 
 /**
  * Serviço para obter informações sobre ações com base no ticker fornecido.
@@ -11,12 +10,13 @@ exports.getStocksService = async (ticker) => {
     let cnpj = '', segment = '', description = '', dataInfo, jsonInfo;
 
     // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
-    const dataType = await getStocksModel(ticker, 'maisRetorno');
-    console.log(`[INFO] Retorna getStocksModel API maisRetorno :: ${dataType.data}`)
+    const dataType = await getStocksModel(ticker.toLocaleUpperCase(), 'felixNaBolsa');
 
-    const group = dataType.data.pageProps.headers.type === 'AÇÕES'
+    console.log(dataType)
+
+    const group = dataType.result.pageContext.ativo.classeAtivo === 'AÇÃO'
         ? 'Ação'
-        : dataType.data.pageProps.headers.type;
+        : dataType.result.pageContext.ativo.classeAtivo;
 
     // Busca informações principais sobre o ativo.
     const dataStock = await getStocksModel(ticker, 'braipModules');
@@ -55,7 +55,7 @@ exports.getStocksService = async (ticker) => {
         description = dataInfo.aboutHistory;
 
     } else if (group === 'ETF') {
-        cnpj = formattedCNPJ(dataType.data.pageProps.headers.cnpj)
+        cnpj = dataType.result.pageContext.ativo.cnpj
         segment = name
 
     } else {
