@@ -15,6 +15,7 @@ const apiBcb = async (id, data) => {
         'Connection': 'keep-alive',
         'Content-Type': 'application/json'
       },
+      timeout: 5000,  // Limite de tempo de 5 segundos
     });
     console.log(response.config.headers);
 
@@ -22,12 +23,16 @@ const apiBcb = async (id, data) => {
 
     return response.data;
   } catch (error) {
-    console.error("[ERROR] Erro ao acessar a API:", {
-      message: error.message,
-      stack: error.stack,
-      response: error.response ? error.response.data : null,
-      status: error.response ? error.response.status : null,
-    });
+    if (error.code === 'ECONNABORTED') {
+      console.error("[ERROR] A requisição excedeu o tempo limite de 5 segundos.");
+    } else {
+      console.error("[ERROR] Erro ao acessar a API:", {
+        message: error.message,
+        stack: error.stack,
+        response: error.response ? error.response.data : null,
+        status: error.response ? error.response.status : null,
+      });
+    }
     throw new Error("Erro ao buscar informação da API Banco Central do Brasil.");
   }
 };
