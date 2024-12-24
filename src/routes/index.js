@@ -3,6 +3,7 @@ const bondsRoutes = require('./bondsRoutes');
 const criptosRoutes = require('./criptosRoutes');
 const stockOptionsRoutes = require('./stockOptionsRoutes');
 const stocksRoutes = require('./stocksRoutes');
+const indexRoutes = require('./indexRoutes');
 
 const router = express.Router();
 
@@ -11,5 +12,6 @@ router.use('/bonds', bondsRoutes);
 router.use('/criptos', criptosRoutes);
 router.use('/stockoptions', stockOptionsRoutes);
 router.use('/stocks', stocksRoutes);
+router.use('/index', indexRoutes);
 
 module.exports = router;
