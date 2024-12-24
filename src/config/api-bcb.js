@@ -12,7 +12,8 @@ const apiBcb = async (id, data) => {
         'User-Agent': 'PostmanRuntime/7.43.0',
         'Accept': '*/*',
         'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive'
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json'
       },
     });
     console.log(response.config.headers);
