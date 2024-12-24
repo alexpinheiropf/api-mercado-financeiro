@@ -1,82 +1,99 @@
 const { getStocksModel } = require('../model/stocksModel');
 const translateText = require('../utils/globalUtils').translateText;
 
+const cache = {}; // Cache simples, pode ser melhorado com Redis ou outro mecanismo para persistência
+const CACHE_EXPIRATION_TIME = 30 * 60 * 1000; // 30 minutos em milissegundos
+
 /**
  * Serviço para obter informações sobre ações com base no ticker fornecido.
  * @param {string} ticker - Código do ativo.
  * @returns {Promise<object>} Informações detalhadas sobre o ativo.
  */
 exports.getStocksService = async (ticker) => {
+    const upperTicker = ticker.toLocaleUpperCase();
+
+    // Verifica se os dados do ticker estão no cache e se ainda não expiraram
+    if (cache[upperTicker] && (Date.now() - cache[upperTicker].timestamp < CACHE_EXPIRATION_TIME)) {
+        console.log("[INFO] Dados encontrados no cache.");
+        return cache[upperTicker].data;
+    }
+
     let cnpj = '', segment = '', description = '', dataInfo, jsonInfo;
 
-    // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
-    const dataType = await getStocksModel(ticker.toLocaleUpperCase(), 'felixNaBolsa');
+    try {
+        // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
+        const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
+        const group = dataType.result.pageContext.ativo.classeAtivo === 'AÇÃO'
+            ? 'Ação'
+            : dataType.result.pageContext.ativo.classeAtivo;
 
-    console.log(dataType)
+        // Busca informações principais sobre o ativo.
+        const dataStock = await getStocksModel(ticker, 'braipModules');
+        if (!dataStock.results || !Array.isArray(dataStock.results)) {
+            throw new Error("[ERROR] Sem resultados.");
+        }
 
-    const group = dataType.result.pageContext.ativo.classeAtivo === 'AÇÃO'
-        ? 'Ação'
-        : dataType.result.pageContext.ativo.classeAtivo;
+        // Extrai o primeiro item do array de resultados.
+        const stock = dataStock.results[0];
+        if (!stock) {
+            throw new Error("[ERROR] Nenhum dado disponível.");
+        }
 
-    // Busca informações principais sobre o ativo.
-    const dataStock = await getStocksModel(ticker, 'braipModules');
-    console.log(`[INFO] Retorna getStocksModel API braipModules :: ${dataStock.results[0]}`)
+        // Desestrutura os campos relevantes do ativo.
+        const { longName: name, regularMarketPrice: price } = stock;
 
-    // Valida a existência de resultados.
-    if (!dataStock.results || !Array.isArray(dataStock.results)) {
-        throw new Error("[ERROR] Sem resultados.");
+        // Obtém informações adicionais com base no grupo identificado.
+        if (group === 'Ação') {
+            jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'acoes');
+            dataInfo = JSON.parse(jsonInfo);
+
+            cnpj = dataInfo.document;
+            segment = dataInfo.sectorName;
+            description = dataInfo.about || dataInfo.aboutHistory;
+
+        } else if (group === 'FII') {
+            jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'fiis');
+            dataInfo = JSON.parse(jsonInfo);
+
+            cnpj = dataInfo.document;
+            segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`;
+            description = dataInfo.aboutHistory;
+
+        } else if (group === 'ETF') {
+            cnpj = dataType.result.pageContext.ativo.cnpj;
+            segment = name;
+
+        } else {
+            segment = stock.summaryProfile?.industry
+                ? await translateText(stock.summaryProfile.industry)
+                : '';
+            description = stock.summaryProfile?.longBusinessSummary
+                ? await translateText(stock.summaryProfile.longBusinessSummary)
+                : '';
+        }
+
+        // Cria o objeto com as informações completas
+        const stockData = {
+            name,
+            ticker: upperTicker,
+            price,
+            segment,
+            description,
+            investment: 'Renda Variável',
+            group,
+            cnpj
+        };
+
+        // Armazena no cache com timestamp
+        cache[upperTicker] = {
+            timestamp: Date.now(),
+            data: stockData
+        };
+
+        return stockData;
+
+    } catch (error) {
+        console.error("[ERROR] Ocorreu um erro ao buscar informações:", error.message);
+        throw error;
     }
-
-    // Extrai o primeiro item do array de resultados.
-    const stock = dataStock.results[0];
-    if (!stock) {
-        throw new Error("[ERROR] Nenhum dado disponível.");
-    }
-
-    // Desestrutura os campos relevantes do ativo.
-    const { longName: name, regularMarketPrice: price } = stock;
-
-    // Obtém informações adicionais com base no grupo identificado.
-    if (group === 'Ação') {
-        // Se for uma ação, busca informações detalhadas específicas.
-        jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'acoes');
-        dataInfo = JSON.parse(jsonInfo);
-
-        cnpj = dataInfo.document;
-        segment = dataInfo.sectorName;
-        description = dataInfo.about || dataInfo.aboutHistory;
-
-    } else if (group === 'FII') {
-        jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'fiis');
-        dataInfo = JSON.parse(jsonInfo);
-
-        cnpj = dataInfo.document;
-        segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`
-        description = dataInfo.aboutHistory;
-
-    } else if (group === 'ETF') {
-        cnpj = dataType.result.pageContext.ativo.cnpj
-        segment = name
-
-    } else {
-        // Para outros grupos, traduz e ajusta informações do perfil resumido.
-        segment = stock.summaryProfile?.industry
-            ? await translateText(stock.summaryProfile.industry)
-            : '';
-        description = stock.summaryProfile?.longBusinessSummary
-            ? await translateText(stock.summaryProfile.longBusinessSummary)
-            : '';
-    }
-
-    // Retorna as informações formatadas como objeto.
-    return {
-        name,
-        ticker: ticker.toUpperCase(),
-        price,
-        segment,
-        description,
-        investment: 'Renda Variável',
-        group,
-        cnpj
-    };
 };
