@@ -1,9 +1,21 @@
 const axios = require("axios");
+const NodeCache = require("node-cache");
 require("dotenv").config();
+
+// Inicializa o cache com um tempo de expiração padrão de 5 minutos
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 120 });
 
 const apiBcb = async (id, data) => {
   const url = `${process.env.API_BCB_URL}/dados/serie/bcdata.sgs.${id}/dados?formato=json&dataInicial=${data}`;
   console.log(`[INFO] Monta a URL de acesso da API: ${url}`);
+
+  // Verifica se os dados já estão no cache
+  const cacheKey = `bcb-${id}-${data}`;
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    console.log("[INFO] Dados encontrados no cache.");
+    return cachedData;
+  }
 
   try {
     console.log("[INFO] Iniciando requisição para a API...");
@@ -15,11 +27,12 @@ const apiBcb = async (id, data) => {
         'Connection': 'keep-alive',
         'Content-Type': 'application/json'
       },
-      timeout: 5000,  // Limite de tempo de 5 segundos
+      timeout: 5000, // Limite de tempo de 5 segundos
     });
-    console.log(response.config.headers);
-
     console.log(`[SUCCESS] Requisição bem-sucedida. Status: ${response.status}`);
+
+    // Armazena os dados no cache
+    cache.set(cacheKey, response.data);
 
     return response.data;
   } catch (error) {

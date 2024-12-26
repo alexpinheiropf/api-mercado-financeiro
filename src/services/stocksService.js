@@ -1,5 +1,6 @@
 const { getStocksModel } = require('../model/stocksModel');
 const translateText = require('../utils/globalUtils').translateText;
+const extractText = require('../utils/stocksUtils').extractText;
 
 const cache = {}; // Cache simples, pode ser melhorado com Redis ou outro mecanismo para persistência
 const CACHE_EXPIRATION_TIME = 30 * 60 * 1000; // 30 minutos em milissegundos
@@ -49,7 +50,7 @@ exports.getStocksService = async (ticker) => {
 
             cnpj = dataInfo.document;
             segment = dataInfo.sectorName;
-            description = dataInfo.about || dataInfo.aboutHistory;
+            description = dataInfo.about || extractText(dataInfo.aboutHistory);
 
         } else if (group === 'FII') {
             jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'fiis');
@@ -57,7 +58,7 @@ exports.getStocksService = async (ticker) => {
 
             cnpj = dataInfo.document;
             segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`;
-            description = dataInfo.aboutHistory;
+            description = extractText(dataInfo.aboutHistory);
 
         } else if (group === 'ETF') {
             cnpj = dataType.result.pageContext.ativo.cnpj;

@@ -1,9 +1,21 @@
 const axios = require("axios");
+const NodeCache = require("node-cache");
 require("dotenv").config();
+
+// Inicializa o cache com um tempo de expiração padrão de 5 minutos
+const cache = new NodeCache({ stdTTL: 300, checkperiod: 120 });
 
 const apiAnaliseAcoes = async (ticker, type) => {
   const url = `${process.env.API_ANALISE_DE_ACOES_URL}/page-data/${type}/${ticker}/page-data.json`;
   console.log(`[INFO] Monta a URL de acesso da API: ${url}`);
+
+  // Verifica se os dados já estão no cache
+  const cacheKey = `${type}-${ticker}`;
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    console.log("[INFO] Dados encontrados no cache.");
+    return cachedData;
+  }
 
   try {
     console.log("[INFO] Iniciando requisição para a API...");
@@ -12,14 +24,18 @@ const apiAnaliseAcoes = async (ticker, type) => {
         'User-Agent': 'PostmanRuntime/7.43.0',
         'Accept': '*/*',
         'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive'
+        'Connection': 'keep-alive',
       },
+      timeout: 5000, // Tempo limite de 5 segundos
     });
-    console.log(response.config.headers);
 
     console.log(`[SUCCESS] Requisição bem-sucedida. Status: ${response.status}`);
 
-    return response.data.result.pageContext.data;
+    // Armazena a resposta no cache
+    const resultData = response.data.result.pageContext.data;
+    cache.set(cacheKey, resultData);
+
+    return resultData;
   } catch (error) {
     console.error("[ERROR] Erro ao acessar a API:", {
       message: error.message,
@@ -27,6 +43,11 @@ const apiAnaliseAcoes = async (ticker, type) => {
       response: error.response ? error.response.data : null,
       status: error.response ? error.response.status : null,
     });
+
+    if (error.code === 'ECONNABORTED') {
+      console.error("[ERROR] Timeout na requisição da API.");
+    }
+
     throw new Error("Erro ao buscar informação da API Análise de Ações.");
   }
 };
