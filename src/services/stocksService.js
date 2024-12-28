@@ -3,7 +3,7 @@ const translateText = require('../utils/globalUtils').translateText;
 const extractText = require('../utils/stocksUtils').extractText;
 
 const cache = {}; // Cache simples, pode ser melhorado com Redis ou outro mecanismo para persistência
-const CACHE_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutos em milissegundos
+const CACHE_EXPIRATION_TIME = 30 * 60 * 1000; // 30 minutos em milissegundos
 
 /**
  * Serviço para obter informações sobre ações com base no ticker fornecido.
