@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node ./src/app",
-    "dev": "nodemon ./src/app"
+    "dev": "nodemon --exec \"kill-port 3000 && node\" ./src/app"
   },
   "dependencies": {
     "@google-cloud/translate": "^8.5.0",
@@ -16,6 +16,7 @@
     "request": "^2.88.2"
   },
   "devDependencies": {
+    "kill-port": "^2.0.1",
     "nodemon": "^3.1.9"
   },
   "repository": {
