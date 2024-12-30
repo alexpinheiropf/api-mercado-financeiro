@@ -23,4 +23,20 @@ async function translateText(text) {
     }
 }
 
-module.exports = { replacetoLowerCase, translateText };
+function formattedCNPJ(cnpj) {
+    // Converte a entrada para string, caso não seja
+    cnpj = String(cnpj);
+
+    // Remove qualquer caractere não numérico
+    cnpj = cnpj.replace(/\D/g, '');
+
+    // Verifica se o CNPJ tem 14 dígitos
+    if (cnpj.length !== 14) {
+        return cnpj
+    }
+
+    // Formata o CNPJ
+    return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+}
+
+module.exports = { replacetoLowerCase, translateText, formattedCNPJ };
