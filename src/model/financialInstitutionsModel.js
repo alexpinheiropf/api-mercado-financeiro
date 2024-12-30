@@ -19,7 +19,7 @@ exports.getFinancialInstitutionsModel = async (financialInstitution) => {
         // Emissores de Títulos de Renda Fixa
         case 'securitiesissuers':
             responseData = await apiOlinda(
-                `${cod}'2'${or}${cod}'5'${or}${cod}'13'${or}${cod}'8'${or}${cod}'11'${or}${cod}'7'${or}${cod}'6'${or}${cod}'29'${or}${cod}'20'`,
+                `${cod}'2'${or}${cod}'5'${or}${cod}'13'${or}${cod}'8'${or}${cod}'11'${or}${cod}'7'${or}${cod}'6'${or}${cod}'29'${or}${cod}'20'${or}${cod}'14'`,
                 dateString,
             );
             break;
