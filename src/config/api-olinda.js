@@ -1,21 +1,34 @@
 const axios = require("axios");
+const NodeCache = require("node-cache");
 require("dotenv").config();
+
+// Criar uma instância do cache com tempo de expiração de 10 minutos (600 segundos)
+const cache = new NodeCache({ stdTTL: 600 }); // 600 segundos = 10 minutos
 
 const apiOlinda = async (param, date, filter) => {
   // URL Base
   const baseUrl = process.env.API_OLINDA_URL;
   const version = process.env.API_OLINDA_VERSION;
-  const dataBase = 'dataBase=@dataBase'
+  const dataBase = 'dataBase=@dataBase';
 
   // Parâmetros URL
   const dataBaseParam = `@dataBase='${date}'`;
   const topParam = '$top=100000';
-  const filterParam = filter !== undefined ? `$filter=${filter}'${param}'` : `$filter=${param}`
+  const filterParam = filter !== undefined ? `$filter=${filter}'${param}'` : `$filter=${param}`;
   const formatParam = '$format=json';
-  const selectParam = `$select=${process.env.API_OLINDA_FILTER}`
+  const selectParam = `$select=${process.env.API_OLINDA_FILTER}`;
 
   const url = `${baseUrl}/${version}(${dataBase})?${dataBaseParam}&${topParam}&${filterParam}&${formatParam}&${selectParam}`;
   console.log(`[INFO] Monta a URL de acesso da API: ${url}`);
+
+  // Verificar se a resposta já está no cache
+  const cacheKey = `${param}_${date}_${filter}`;
+  const cachedData = cache.get(cacheKey);
+
+  if (cachedData) {
+    console.log("[INFO] Dados obtidos do cache.");
+    return cachedData;
+  }
 
   try {
     console.log("[INFO] Iniciando requisição para a API...");
@@ -27,9 +40,11 @@ const apiOlinda = async (param, date, filter) => {
         'Connection': 'keep-alive'
       },
     });
-    console.log(response.config.headers);
 
     console.log(`[SUCCESS] Requisição bem-sucedida. Status: ${response.status}`);
+
+    // Armazenar a resposta no cache
+    cache.set(cacheKey, response.data);
 
     return response.data;
   } catch (error) {
