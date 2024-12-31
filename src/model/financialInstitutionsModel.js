@@ -37,7 +37,7 @@ exports.getFinancialInstitutionsModel = async (financialInstitution) => {
             responseData = await apiOlinda(
                 instituition,
                 dateString,
-                'nomeReduzido%20eq%20'
+                'nomeReduzido',
             );
             break;
     }

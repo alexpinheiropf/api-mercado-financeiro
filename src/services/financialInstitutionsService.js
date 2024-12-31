@@ -1,5 +1,6 @@
 const { getFinancialInstitutionsModel } = require('../model/financialInstitutionsModel');
 const { formattedCNPJ } = require('../utils/globalUtils');
+const { regexBrokers } = require('../utils/financialInstitutionUtils');
 
 /**
  * Serviço para obter informações sobre instituições financeiras
@@ -12,7 +13,7 @@ exports.getfinancialInstitutionsService = async (financialInstitution) => {
         return {
             id: data.value[0].codigoSisbacen,
             name: data.value[0].nomeEntidadeInteresse,
-            ticker: data.value[0].nomeReduzido,
+            ticker: regexBrokers(data.value[0].nomeReduzido),
             segment: data.value[0].descricaoTipoEntidadeSupervisionada,
             description: data.value[0].descricaoNaturezaJuridica,
             cnpj: formattedCNPJ(data.value[0].codigoCNPJ14)
@@ -27,7 +28,7 @@ exports.getfinancialInstitutionsService = async (financialInstitution) => {
                 financialInstitutions.push({
                     id: item.codigoSisbacen,
                     name: item.nomeEntidadeInteresse,
-                    ticker: item.nomeReduzido,
+                    ticker: regexBrokers(item.nomeReduzido),
                     segment: item.descricaoTipoEntidadeSupervisionada,
                     description: item.descricaoNaturezaJuridica,
                     cnpj: formattedCNPJ(item.codigoCNPJ14)

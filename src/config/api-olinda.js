@@ -32,14 +32,14 @@ const apiOlinda = async (param, date, filter) => {
     const version = process.env.API_OLINDA_VERSION;
     const dataBase = 'dataBase=@dataBase';
     const dataBaseParam = `@dataBase='${date}'`;
-    const topParam = '$top=100000';
-    const filterParam = filter !== undefined ? `$filter=${filter}'${param}'` : `$filter=${param}`;
+    const topParam = '$top=5000';
+    const filterParam = filter !== undefined ? `$filter=contains(${filter},'${param}')` : `$filter=${param}`;
     const formatParam = '$format=json';
     const selectParam = `$select=${process.env.API_OLINDA_FILTER}`;
     const url = `${baseUrl}/${version}(${dataBase})?${dataBaseParam}&${topParam}&${filterParam}&${formatParam}&${selectParam}`;
 
     console.log(`[INFO] Monta a URL de acesso da API: ${url}`);
-
+    // contains(nomeReduzido,'NU%20INVEST')
     // Fazer a requisição
     console.log("[INFO] Iniciando requisição para a API...");
     const response = await apiClient.get(url);
