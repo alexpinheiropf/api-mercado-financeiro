@@ -1,29 +1,41 @@
 require('dotenv').config();
 const axios = require("axios");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 600, checkperiod: 60 });
+
+const cachedETag = {};
+const axiosInstance = axios.create({
+    baseURL: process.env.API_COIN_MARKETING_CAP_URL,
+    headers: { 'X-CMC_PRO_API_KEY': process.env.API_COIN_MARKETING_CAP_KEY },
+    timeout: 5000,
+    httpAgent: new (require('http').Agent)({ keepAlive: true }),
+    httpsAgent: new (require('https').Agent)({ keepAlive: true }),
+});
 
 const apiCoinMarketingCap = async (ticker, api, param, id) => {
+    const params = { [param]: ticker };
+    if (id) params['id'] = id;
+
+    const cacheKey = `${api}-${ticker}-${param}-${id || 'no-id'}`;
+
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) return cachedData;
+
+    const headers = {};
+    if (cachedETag[cacheKey]) headers['If-None-Match'] = cachedETag[cacheKey];
+
     try {
-        const params = {
-            [param]: ticker,
-        };
+        const response = await axiosInstance.get(api, { params, headers });
 
-        // Verifica se o id foi fornecido e adiciona ao params
-        if (id) {
-            params['id'] = id;
-        }
+        if (response.headers['etag']) cachedETag[cacheKey] = response.headers['etag'];
 
-        const response = await axios.get(process.env.API_COIN_MARKETING_CAP_URL + api, {
-            headers: {
-                'X-CMC_PRO_API_KEY': process.env.API_COIN_MARKETING_CAP_KEY
-            },
-            params: params,
-        });
+        cache.set(cacheKey, response.data);
         return response.data;
     } catch (error) {
-        console.error('Erro ao buscar categorias de cripto:', error.message);
+        if (error.response && error.response.status === 304) return cache.get(cacheKey);
         throw error;
     }
 };
 
-module.exports = apiCoinMarketingCap; // Exporta diretamente a função
-
+module.exports = apiCoinMarketingCap;
