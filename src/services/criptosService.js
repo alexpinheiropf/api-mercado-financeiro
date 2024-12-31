@@ -24,8 +24,35 @@ exports.getCriptosService = async (ticker) => {
     // Nome da criptomoeda.
     const name = cripto.name;
 
-    // Segmento da criptomoeda (tradução e categorização).
-    const segment = await getSegmentCripto(cripto);
+    let segment
+    switch (ticker.toUpperCase()) {
+        case 'BTC':
+            segment = 'Bitcoin'
+            break;
+
+        case 'ETH':
+        case 'XRP':
+        case 'BCH':
+        case 'LTC':
+            segment = 'Altcoin'
+            break;
+
+        case 'USDT':
+        case 'USDC':
+        case 'BRZ':
+        case 'BUSD':
+        case 'TUSD':
+        case 'GUSD':
+        case 'PAX':
+        case 'PAXG':
+            segment = 'Stablecoin'
+            break;
+
+        default:
+            // Segmento da criptomoeda (tradução e categorização).
+            segment = await getSegmentCripto(cripto);
+    }
+
 
     // Descrição traduzida da criptomoeda.
     const description = await translateText(cripto.description);
