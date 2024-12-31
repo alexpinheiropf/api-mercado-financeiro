@@ -1,4 +1,4 @@
-const { translateText } = require('../utils/globalUtils');
+const { translateText, capitalize } = require('../utils/globalUtils');
 
 function getCryptoPrice(criptoInfoMarket) {
 
@@ -26,7 +26,7 @@ function getDataCripto(dataCripto) {
     return dataCripto.data[firstKey][0];
 }
 
-async function getSegmentCripto(cripto) {
+async function getSegmentCripto(cripto, segment) {
     let category = "";
 
     // Verificação da palavra "INDUSTRY" em "tag-groups" e extração correspondente de "tag-names"
@@ -43,13 +43,13 @@ async function getSegmentCripto(cripto) {
     }
 
     // Formatar o resultado: "category - primeiroValor, restanteDosValores"
-    if (industryTags.length > 0) {
-        category = `${cripto.category} - ${industryTags[0]}`; // Prefixa a categoria no primeiro valor
+    if (industryTags.length > 0 && segment === undefined) {
+        category = `${capitalize(cripto.category)} - ${industryTags[0]}`; // Prefixa a categoria no primeiro valor
         if (industryTags.length > 1) {
             category += `, ${industryTags.slice(1).join(", ")}`; // Adiciona os valores restantes
         }
     } else {
-        category = cripto.category
+        category = capitalize(cripto.category)
     }
 
     return await translateText(category)
