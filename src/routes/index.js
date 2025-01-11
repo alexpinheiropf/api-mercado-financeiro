@@ -5,6 +5,7 @@ const stockOptionsRoutes = require('./stockOptionsRoutes');
 const stocksRoutes = require('./stocksRoutes');
 const indexRoutes = require('./indexRoutes');
 const financialInstitutionsRoutes = require('./financialInstitutionsRoutes');
+const statusRoutes = require('./statusRoutes');
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use('/stockoptions', stockOptionsRoutes);
 router.use('/stocks', stocksRoutes);
 router.use('/index', indexRoutes);
 router.use('/financialinstitutions', financialInstitutionsRoutes);
+router.use('/status', statusRoutes);
 
 module.exports = router;
