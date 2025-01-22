@@ -26,6 +26,7 @@ const apiBrapi = async (ticker, api, module, param) => {
         // Valida se ativo existia anteriormente
         switch (stock[0]) {
             case 'ENBR3':
+            case 'SQIA3':
                 const responseReturn = {
                     "results": [
                         {
