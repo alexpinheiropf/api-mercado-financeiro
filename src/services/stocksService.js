@@ -41,12 +41,16 @@ exports.getStocksService = async (ticker) => {
         }
 
         // Desestrutura os campos relevantes do ativo.
-        const { longName: name, regularMarketPrice: price } = stock;
+        let { longName: name, regularMarketPrice: price } = stock;
 
         // Obtém informações adicionais com base no grupo identificado.
         if (group === 'Ação') {
             jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'acoes');
             dataInfo = JSON.parse(jsonInfo);
+
+            if (stock.longName === '') {
+                name = dataInfo.name
+            }
 
             cnpj = dataInfo.document;
             segment = dataInfo.sectorName;
