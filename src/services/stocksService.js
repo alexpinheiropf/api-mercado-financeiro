@@ -26,7 +26,7 @@ exports.getStocksService = async (ticker) => {
         const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
         const group = dataType.result.data.apiServerFrontListarAtivos.classeAtivo === 'AÇÃO'
             ? 'Ação'
-            : dataType.result.pageContext.ativo.classeAtivo;
+            : dataType.result.data.apiServerFrontListarAtivos.classeAtivo;
 
         // Busca informações principais sobre o ativo.
         const dataStock = await getStocksModel(ticker, 'braipModules');
