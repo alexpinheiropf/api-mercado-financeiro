@@ -24,9 +24,11 @@ exports.getStocksService = async (ticker) => {
     try {
         // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
         const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
-        const group = dataType.result.data.apiServerFrontListarAtivos.classeAtivo === 'AÇÃO'
+        let grupoClasseAtivo = dataType.result.data.apiServerFrontListarAtivos.classeAtivo;
+
+        const group = grupoClasseAtivo === 'AÇÃO'
             ? 'Ação'
-            : dataType.result.data.apiServerFrontListarAtivos.classeAtivo;
+            : grupoClasseAtivo;
 
         // Busca informações principais sobre o ativo.
         const dataStock = await getStocksModel(ticker, 'braipModules');
