@@ -24,7 +24,7 @@ exports.getStocksService = async (ticker) => {
     try {
         // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
         const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
-        const group = dataType.result.pageContext.ativo.classeAtivo === 'AÇÃO'
+        const group = dataType.result.data.apiServerFrontListarAtivos.classeAtivo === 'AÇÃO'
             ? 'Ação'
             : dataType.result.pageContext.ativo.classeAtivo;
 
