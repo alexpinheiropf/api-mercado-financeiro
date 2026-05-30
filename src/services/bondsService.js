@@ -12,12 +12,14 @@ exports.getBondsService = async (ticker) => {
         return cache[ticker].data;
     }
 
-    try {
-        const dataApiTreasury = await getBondsModel();
 
-        // Função para formatar os dados do bond
-        const formatBondData = (bond) => {
-            const price = bond.untrInvstmtVal === 0 ? bond.untrRedVal : bond.untrInvstmtVal;
+    try {
+        const dataApiTreasury = await getBondsModel(ticker === 'all' ? 'all' : ticker);
+
+        // Formata itens quando a fonte é a lista tradicional (/bonds.json)
+        const formatFromList = (doc) => {
+            const bond = doc.TrsrBd;
+            const price = (bond.untrInvstmtVal === 0 || bond.untrInvstmtVal == null) ? bond.untrRedVal : bond.untrInvstmtVal;
             return {
                 name: bond.nm,
                 price,
@@ -28,17 +30,28 @@ exports.getBondsService = async (ticker) => {
             };
         };
 
+        // Formata quando a fonte é o endpoint /bonds/{name}
+        const formatFromItem = (item) => {
+            const price = item.unitaryRedemptionValue ?? item.untrRedVal ?? item.untrInvstmtVal ?? 0;
+            const name = item.treasuryBondName ?? item.nm ?? item.treasuryBondName;
+            return {
+                name,
+                price,
+                segment: 'Tesouro Direto',
+                description: item.indication ?? item.featrs,
+                investment: 'Renda Fixa',
+                group: 'Tesouro',
+            };
+        };
+
         let result;
 
         if (ticker === 'all') {
-            // Retorna todos os bonds formatados
-            result = dataApiTreasury.map(doc => formatBondData(doc.TrsrBd));
+            // Retorna todos os bonds formatados a partir da lista
+            result = dataApiTreasury.map(doc => formatFromList(doc));
         } else {
-            // Busca o bond específico
-            const bond = dataApiTreasury.find(doc => replacetoLowerCase(doc.TrsrBd.nm) === ticker);
-
-            // Retorna o bond formatado ou null se não encontrado
-            result = bond ? formatBondData(bond.TrsrBd) : null;
+            // dataApiTreasury deve ser o objeto do bond específico
+            result = dataApiTreasury ? formatFromItem(dataApiTreasury) : null;
         }
 
         // Armazena no cache com timestamp
