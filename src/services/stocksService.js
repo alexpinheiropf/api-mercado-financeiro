@@ -20,63 +20,89 @@ exports.getStocksService = async (ticker) => {
     }
 
     let cnpj = '', segment = '', description = '', dataInfo, jsonInfo;
+    const warnings = [];
 
     try {
         // Obtém o tipo de grupo (ex.: "Ação") baseado nos dados do modelo.
-        const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
-        let grupoClasseAtivo = dataType.result.data.apiServerFrontListarAtivos.classeAtivo;
+        let grupoClasseAtivo = '';
+        try {
+            const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
+            grupoClasseAtivo = dataType?.result?.data?.apiServerFrontListarAtivos?.classeAtivo || '';
+        } catch (e) {
+            warnings.push(`felixNaBolsa: ${e.message}`);
+            grupoClasseAtivo = '';
+        }
 
-        const group = grupoClasseAtivo === 'AÇÃO'
-            ? 'Ação'
-            : grupoClasseAtivo;
+        const group = grupoClasseAtivo === 'AÇÃO' ? 'Ação' : grupoClasseAtivo || '';
 
         // Busca informações principais sobre o ativo.
-        const dataStock = await getStocksModel(ticker, 'braipModules');
-        if (!dataStock.results || !Array.isArray(dataStock.results)) {
-            throw new Error("[ERROR] Sem resultados.");
+        let stock = {};
+        try {
+            const dataStock = await getStocksModel(ticker, 'braipModules');
+            if (dataStock && Array.isArray(dataStock.results) && dataStock.results.length > 0) {
+                stock = dataStock.results[0] || {};
+            } else {
+                warnings.push('braipModules: sem resultados');
+                stock = {};
+            }
+        } catch (e) {
+            warnings.push(`braipModules: ${e.message}`);
+            stock = {};
         }
 
-        // Extrai o primeiro item do array de resultados.
-        const stock = dataStock.results[0];
-        if (!stock) {
-            throw new Error("[ERROR] Nenhum dado disponível.");
-        }
-
-        // Desestrutura os campos relevantes do ativo.
-        let { longName: name, regularMarketPrice: price } = stock;
+        // Desestrutura os campos relevantes do ativo (quando disponíveis).
+        let name = stock?.longName || '';
+        let price = stock?.regularMarketPrice;
 
         // Obtém informações adicionais com base no grupo identificado.
         if (group === 'Ação') {
-            jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'acoes');
-            dataInfo = JSON.parse(jsonInfo);
+            try {
+                jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'acoes');
+                dataInfo = JSON.parse(jsonInfo);
 
-            if (stock.longName === '') {
-                name = dataInfo.name
+                if (!name && dataInfo?.name) {
+                    name = dataInfo.name;
+                }
+
+                cnpj = dataInfo?.document || '';
+                segment = dataInfo?.sectorName || '';
+                description = dataInfo?.about || extractText(dataInfo?.aboutHistory || '');
+            } catch (e) {
+                warnings.push(`analiseAcoes(acoes): ${e.message}`);
             }
 
-            cnpj = dataInfo.document;
-            segment = dataInfo.sectorName;
-            description = dataInfo.about || extractText(dataInfo.aboutHistory);
-
         } else if (group === 'FII') {
-            jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'fiis');
-            dataInfo = JSON.parse(jsonInfo);
+            try {
+                jsonInfo = await getStocksModel(ticker.toLowerCase(), 'analiseAcoes', 'fiis');
+                dataInfo = JSON.parse(jsonInfo);
 
-            cnpj = dataInfo.document;
-            segment = `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName}`;
-            description = extractText(dataInfo.aboutHistory);
+                cnpj = dataInfo?.document || '';
+                segment = dataInfo?.type ? `Fundo de ${dataInfo.type} - Segmento de ${dataInfo.segmentName || ''}` : dataInfo?.segmentName || '';
+                description = extractText(dataInfo?.aboutHistory || '');
+            } catch (e) {
+                warnings.push(`analiseAcoes(fiis): ${e.message}`);
+            }
 
         } else if (group === 'ETF') {
-            cnpj = dataType.result.pageContext.ativo.cnpj;
-            segment = name;
+            try {
+                const dataType = await getStocksModel(upperTicker, 'felixNaBolsa');
+                cnpj = dataType?.result?.pageContext?.ativo?.cnpj || '';
+                segment = name;
+            } catch (e) {
+                warnings.push(`felixNaBolsa(ETF): ${e.message}`);
+            }
 
         } else {
-            segment = stock.summaryProfile?.industry
-                ? await translateText(stock.summaryProfile.industry)
-                : '';
-            description = stock.summaryProfile?.longBusinessSummary
-                ? await translateText(stock.summaryProfile.longBusinessSummary)
-                : '';
+            try {
+                if (stock?.summaryProfile?.industry) {
+                    segment = await translateText(stock.summaryProfile.industry).catch(t => { warnings.push(`translate industry: ${t.message}`); return ''; });
+                }
+                if (stock?.summaryProfile?.longBusinessSummary) {
+                    description = await translateText(stock.summaryProfile.longBusinessSummary).catch(t => { warnings.push(`translate summary: ${t.message}`); return ''; });
+                }
+            } catch (e) {
+                warnings.push(`summaryProfile: ${e.message}`);
+            }
         }
 
         // Cria o objeto com as informações completas
@@ -91,16 +117,38 @@ exports.getStocksService = async (ticker) => {
             cnpj
         };
 
-        // Armazena no cache com timestamp
-        cache[upperTicker] = {
-            timestamp: Date.now(),
-            data: stockData
-        };
+        if (warnings.length === 0) {
+            cache[upperTicker] = {
+                timestamp: Date.now(),
+                data: stockData
+            };
+        } else {
+            // Armazena no cache parcial também (opcional): substitua se quiser apenas cache completo
+            cache[upperTicker] = {
+                timestamp: Date.now(),
+                data: stockData
+            };
+        }
+
+        // Anexa avisos caso alguma API tenha falhado, mas retorna 200 com os dados parcialmente preenchidos
+        if (warnings.length > 0) stockData.warnings = warnings;
 
         return stockData;
 
     } catch (error) {
-        console.error("[ERROR] Ocorreu um erro ao buscar informações:", error.message);
-        throw error;
+        console.error("[ERROR] Ocorreu um erro inesperado ao buscar informações:", error.message);
+        // Em caso de falha totalmente inesperada, retorne um objeto padrão com aviso, não lance.
+        const fallback = {
+            name: '',
+            ticker: upperTicker,
+            price: null,
+            segment: '',
+            description: '',
+            investment: 'Renda Variável',
+            group: '',
+            cnpj: '',
+            warnings: [error.message]
+        };
+        return fallback;
     }
 };
