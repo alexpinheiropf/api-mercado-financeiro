@@ -47,8 +47,8 @@ exports.getCriptosService = async (ticker) => {
             price,
             segment,
             description,
-            investment: 'Renda Variável',
-            group: 'Cripto',
+            investment: 'Alternativos',
+            group: 'Criptomoeda',
         };
     } catch (error) {
         console.error("Erro ao obter informações da criptomoeda:", error);
