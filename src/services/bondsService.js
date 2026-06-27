@@ -40,7 +40,7 @@ exports.getBondsService = async (ticker) => {
                 segment: 'Tesouro Direto',
                 description: item.indication ?? item.featrs,
                 investment: 'Renda Fixa',
-                group: 'Tesouro',
+                group: 'Tesouro Direto',
             };
         };
 
